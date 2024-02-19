@@ -1,0 +1,45 @@
+1.
+SOURCE arena.sql;
+
+2.(a)
+SELECT PerformerName,ActivityName FROM Performers LEFT JOIN Activities ON Performers.ActivityID=Activities.ActivityID;
+
+2.(b)
+CREATE VIEW Act_perf AS SELECT PerformerName,ActivityName FROM Performers,Activities WHERE Performers.ActivityID=Activities.ActivityID;
+
+2.(c)
+SELECT * FROM Act_perf;
+
+3.(a)
+INSERT INTO Performers VALUES(8,'Tony Joel','Main St','Scranton','PA',43243,4);
+
+3.(b)
+SELECT * FROM Act_perf;
+
+4.(a)
+UPDATE Act_perf SET PerformerName='Harry Chapinn' WHERE PerformerName='Harry Chapin';
+
+4.(c)
+SELECT * FROM Performers;
+
+5.
+CREATE VIEW Perf_Income AS SELECT PerformerName,ArenaName,ConcertDate,0.1*TicketPrice*0.8*ArenaCapacity AS Total_Income FROM Performers JOIN Concerts JOIN Arenas WHERE Performers.PerformerID=Concerts.PerformerID AND Concerts.ArenaID=Arenas.ArenaID;
+
+6.
+SELECT * FROM Perf_Income ORDER BY Total_Income DESC LIMIT 8;
+
+7.
+SELECT PerformerName,ArenaName,ConcertDate,0.1*TicketPrice*0.8*ArenaCapacity AS Total_Income FROM Performers JOIN Concerts JOIN Arenas WHERE Performers.PerformerID=Concerts.PerformerID AND Concerts.ArenaID=Arenas.ArenaID ORDER BY Total_Income DESC LIMIT 8;
+
+8.
+SELECT PerformerName,SUM(Total_Income) AS Total_Money FROM Perf_Income GROUP BY PerformerName;
+
+9.
+UPDATE Perf_Income SET Total_Income=100000 WHERE PerformerName='Jimmy Buffett';
+
+
+EXTRA
+
+CREATE VIEW A_p AS SELECT PerformerName,ActivityName FROM Activities LEFT JOIN Performers ON Performers.ActivityID=Activities.ActivityID;
+
+

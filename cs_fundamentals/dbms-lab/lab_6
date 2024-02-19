@@ -1,0 +1,412 @@
+18ucc040@cselab2pc25:~$ mysql -u root -p
+Enter password: 
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 9
+Server version: 8.0.17 MySQL Community Server - GPL
+
+Copyright (c) 2000, 2019, Oracle and/or its affiliates. All rights reserved.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> SHOW DATABASES;
++----------------------+
+| Database             |
++----------------------+
+| 17ucs025             |
+| 18UCC040_Company     |
+| 18ucc129             |
+| 18ucc129_mid         |
+| 18ucc129_movieRating |
+| 18ucc129_trigger     |
+| 18ucs029             |
+| 18ucs029_movieRating |
+| 18ucs108_company     |
+| 18ucs108_movierating |
+| 18ucs185_Company     |
+| 18ucs187             |
+| 18ucs187_Company     |
+| 18ucs187_company     |
+| 18ucs221_midterm     |
+| Phone                |
+| Rating_17ucs025      |
+| company              |
+| data                 |
+| exam                 |
+| examOd               |
+| examOdd              |
+| harshit_midterm      |
+| information_schema   |
+| movie                |
+| movieRating_17ucs166 |
+| movieRating_18ucc040 |
+| movierating          |
+| movierating_17ucc028 |
+| movierating_17ucs098 |
+| mysql                |
+| performance_schema   |
+| set1                 |
+| socialNetwork        |
+| sys                  |
+| test                 |
+| triggers             |
+| try                  |
++----------------------+
+38 rows in set (0.00 sec)
+
+mysql> CREATE DATABASE LAB_6;
+Query OK, 1 row affected (0.11 sec)
+
+mysql> USE LAB_6;
+Database changed
+mysql> CREATE TABLE t1(
+    -> id int(5),
+    -> name varchar(20),
+    -> CONSTRAINT PK PRIMARY KEY(id)); 
+Query OK, 0 rows affected, 1 warning (0.47 sec)
+
+mysql> CREATE TABLE t2(
+    -> id int(5),
+    -> name varchar(20));
+Query OK, 0 rows affected, 1 warning (0.39 sec)
+
+mysql> delimiter #
+mysql> CREATE TRIGGER dup
+    -> AFTER INSERT 
+    -> ON t1
+    -> FOR EACH ROW
+    -> BEGIN
+    -> INSERT INTO t2(id,name) VALUES (new.id,new.name)
+    -> ;
+    -> end#
+
+Query OK, 0 rows affected (0.09 sec)
+
+mysql> 
+mysql> INSERT INTO t1(1,"A")#
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '1,"A")' at line 1
+mysql> INSERT INTO t1 VALUES(1,"A")#
+Query OK, 1 row affected (0.10 sec)
+
+mysql> drop trigger dup#
+Query OK, 0 rows affected (0.11 sec)
+
+mysql> CREATE TRIGGER dup
+    -> AFTER INSERT
+    -> ON t1
+    -> FOR EACH ROW
+    -> BEGIN
+    -> INSERT INTO t2(id,name) VALUES (new.id,new.name);
+    -> INSERT INTO t2(id,name) VALUES (new.id,new.name);
+    -> END#
+Query OK, 0 rows affected (0.12 sec)
+
+mysql> INSERT INTO t1 VALUES(2,"B")#
+Query OK, 1 row affected (0.10 sec)
+
+mysql> SELECT * FROM T1;
+    -> ^C
+mysql> SELECT * FROM T1#
+ERROR 1146 (42S02): Table 'LAB_6.T1' doesn't exist
+mysql> SELECT * FROM T1#
+ERROR 1146 (42S02): Table 'LAB_6.T1' doesn't exist
+mysql> SELECT * FROM t1#
++----+------+
+| id | name |
++----+------+
+|  1 | A    |
+|  2 | B    |
++----+------+
+2 rows in set (0.00 sec)
+
+mysql> SELECT * FROM t2#
++------+------+
+| id   | name |
++------+------+
+|    1 | A    |
+|    2 | B    |
+|    2 | B    |
++------+------+
+3 rows in set (0.00 sec)
+
+mysql> CREATE TRIGGER delcas
+    -> AFTER DELETE
+    -> ON t1
+    -> FOR EACH ROW
+    -> BEGIN
+    -> DELETE FROM t2 WHERE t2.id=old.id;
+    -> END#                                                                     Query OK, 0 rows affected (0.11 sec)
+
+mysql> DELETE FROM t1 WHERE id=1;
+    -> ^C
+mysql> DELETE FROM t1 WHERE id=1#
+Query OK, 1 row affected (0.09 sec)
+
+mysql> SELECT * FROM t1#
++----+------+
+| id | name |
++----+------+
+|  2 | B    |
++----+------+
+1 row in set (0.00 sec)
+
+mysql> SELECT * FROM t2#
++------+------+
+| id   | name |
++------+------+
+|    2 | B    |
+|    2 | B    |
++------+------+
+2 rows in set (0.00 sec)
+
+mysql> CREATE TABLE log(
+    -> id int(5),
+    -> name varchar(5),
+    -> event varchar(9));
+    -> ^C
+mysql> CREATE TABLE log(
+    -> id int(5),
+    -> name varchar(5),
+    -> event varchar(9))#
+Query OK, 0 rows affected, 1 warning (0.41 sec)
+
+mysql> SHOW TABLES#
++-----------------+
+| Tables_in_LAB_6 |
++-----------------+
+| log             |
+| t1              |
+| t2              |
++-----------------+
+3 rows in set (0.01 sec)
+
+mysql> CREATE TRIGGER tr1
+    -> AFTER INSERT 
+    -> ON t1
+    -> FOR EACH ROW
+    -> BEGIN
+    -> INSERT INTO log(id,name,event) VALUES (new.id,new.name,"INSERT");
+    -> END#
+Query OK, 0 rows affected (0.11 sec)
+
+mysql> CREATE TRIGGER tr2
+    -> AFTER DELETE
+    -> ON t1
+    -> FOR EACH ROW
+    -> BEGIN
+    -> 
+    -> INSERT INTO log(id,name,event) VALUES (new.id,new.name,"DELETE");
+    -> END#
+ERROR 1363 (HY000): There is no NEW row in on DELETE trigger
+mysql> CREATE TRIGGER tr2
+    -> AFTER DELETE
+    -> ON t1
+    -> FOR EACH ROW
+    -> BEGIN
+    -> INSERT INTO log(id,name,event) VALUES (old.id,old.name,"DELETE");        
+    -> END#
+Query OK, 0 rows affected (0.11 sec)
+
+mysql> CREATE TRIGGER tr3
+    -> AFTER DELETE
+    -> ON t1
+    -> FOR EACH ROW
+    -> BEGIN
+    -> INSERT INTO log(id,name,event) VALUES (new.id,new.name,"UPDATE");
+    -> END#
+ERROR 1363 (HY000): There is no NEW row in on DELETE trigger
+mysql> CREATE TRIGGER tr3
+    -> AFTER UPDATE
+    -> ON t1
+    -> FOR EACH ROW
+    -> BEGIN
+    -> INSERT INTO log(id,name,event) VALUES (new.id,new.name,"UPDATE");            -> END#                                                                     Query OK, 0 rows affected (0.12 sec)
+
+mysql> CREATE TRIGGER tr4
+    -> AFTER UPDATE
+    -> ON t1
+    -> FOR EACH ROW
+    -> BEGIN
+    -> INSERT INTO log(id,name,event) VALUES (old.id,old.name,"OUPDATE");
+    -> END#
+Query OK, 0 rows affected (0.14 sec)
+
+mysql> INSERT INTO t1 VALUES(3,"c");
+    -> ^C
+mysql> INSERT INTO t1 VALUES(3,"c")#
+Query OK, 1 row affected (0.08 sec)
+
+mysql> INSERT INTO t1 VALUES(1,"a")#
+Query OK, 1 row affected (0.08 sec)
+
+mysql> INSERT INTO t1 VALUES(4,"d")#
+Query OK, 1 row affected (0.08 sec)
+
+mysql> SELECT * FROM t1;
+    -> ^C
+mysql> SELECT * FROM t1#
++----+------+
+| id | name |
++----+------+
+|  1 | a    |
+|  2 | B    |
+|  3 | c    |
+|  4 | d    |
++----+------+
+4 rows in set (0.00 sec)
+
+mysql> SELECT * FROM t2#
++------+------+
+| id   | name |
++------+------+
+|    2 | B    |
+|    2 | B    |
+|    3 | c    |
+|    3 | c    |
+|    1 | a    |
+|    1 | a    |
+|    4 | d    |
+|    4 | d    |
++------+------+
+8 rows in set (0.00 sec)
+
+mysql> SELECT * FROM log#
++------+------+--------+
+| id   | name | event  |
++------+------+--------+
+|    3 | c    | INSERT |
+|    1 | a    | INSERT |
+|    4 | d    | INSERT |
++------+------+--------+
+3 rows in set (0.00 sec)
+
+mysql> DELETE FROM t1 WHERE id=2;
+    -> ^C
+mysql> DELETE FROM t1 WHERE id=2#
+Query OK, 1 row affected (0.09 sec)
+
+mysql> SELECT * FROM t1#
++----+------+
+| id | name |
++----+------+
+|  1 | a    |
+|  3 | c    |
+|  4 | d    |
++----+------+
+3 rows in set (0.00 sec)
+
+mysql> SELECT * FROM t2#
++------+------+
+| id   | name |
++------+------+
+|    3 | c    |
+|    3 | c    |
+|    1 | a    |
+|    1 | a    |
+|    4 | d    |
+|    4 | d    |
++------+------+
+6 rows in set (0.00 sec)
+
+mysql> SELECT * FROM log#
++------+------+--------+
+| id   | name | event  |
++------+------+--------+
+|    3 | c    | INSERT |
+|    1 | a    | INSERT |
+|    4 | d    | INSERT |
+|    2 | B    | DELETE |
++------+------+--------+
+4 rows in set (0.00 sec)
+
+mysql> ALTER TABLE t1 UPDATE id=2 WHERE id=1;
+    -> ^C
+mysql> ALTER TABLE t1 UPDATE id=2 WHERE id=1#
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'UPDATE id=2 WHERE id=1' at line 1
+mysql> UPDATE t1 SET name="b" WHERE id=1;
+    -> ^C
+mysql> UPDATE t1 SET name="b" WHERE id=1#
+Query OK, 1 row affected (0.12 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> SELECT * FROM t1#
++----+------+
+| id | name |
++----+------+
+|  1 | b    |
+|  3 | c    |
+|  4 | d    |
++----+------+
+3 rows in set (0.00 sec)
+
+mysql> SELECT * FROM t2#
++------+------+
+| id   | name |
++------+------+
+|    3 | c    |
+|    3 | c    |
+|    1 | a    |
+|    1 | a    |
+|    4 | d    |
+|    4 | d    |
++------+------+
+6 rows in set (0.00 sec)
+
+mysql> SELECT * FROM log#
++------+------+---------+
+| id   | name | event   |
++------+------+---------+
+|    3 | c    | INSERT  |
+|    1 | a    | INSERT  |
+|    4 | d    | INSERT  |
+|    2 | B    | DELETE  |
+|    1 | b    | UPDATE  |
+|    1 | a    | OUPDATE |
++------+------+---------+
+6 rows in set (0.00 sec)
+
+mysql> UPDATE t1 SET id=2 WHERE id=1#
+Query OK, 1 row affected (0.09 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> SELECT * FROM t1#
++----+------+
+| id | name |
++----+------+
+|  2 | b    |
+|  3 | c    |
+|  4 | d    |
++----+------+
+3 rows in set (0.00 sec)
+
+mysql> SELECT * FROM t2#
++------+------+
+| id   | name |
++------+------+
+|    3 | c    |
+|    3 | c    |
+|    1 | a    |
+|    1 | a    |
+|    4 | d    |
+|    4 | d    |
++------+------+
+6 rows in set (0.00 sec)
+
+mysql> SELECT * FROM log#
++------+------+---------+
+| id   | name | event   |
++------+------+---------+
+|    3 | c    | INSERT  |
+|    1 | a    | INSERT  |
+|    4 | d    | INSERT  |
+|    2 | B    | DELETE  |
+|    1 | b    | UPDATE  |
+|    1 | a    | OUPDATE |
+|    2 | b    | UPDATE  |
+|    1 | b    | OUPDATE |
++------+------+---------+
+8 rows in set (0.00 sec)
+

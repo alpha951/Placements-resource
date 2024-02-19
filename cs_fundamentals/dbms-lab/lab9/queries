@@ -1,0 +1,20 @@
+db2 db2start
+db2 list database directory
+db2 connect to TUES
+db2 list tables
+db2 -tbf arena.sql
+db2 -td@
+2.(a)
+	CREATE VIEW Perf_D AS SELECT PerformerID,PerformerName FROM PERFORMERS WHERE State='NY' and ActivityID=3@
+2.(b)
+	DELETE FROM Perf_D WHERE PerformerID=7@
+2.(d)
+	CREATE TRIGGER t1 INSTEAD OF DELETE ON Perf_D REFERENCING NEW AS N OLD AS O FOR EACH ROW BEGIN DELETE FROM Concerts WHERE PerformerID=7; DELETE FROM Performers WHERE PerformerID=7; END@
+3.(a)
+	CREATE VIEW Concert_P AS SELECT PerformerID,ArenaID,TicketPrice FROM Concerts WHERE ArenaID=6@
+3.(b)
+	CREATE TRIGGER t2 INSTEAD OF UPDATE ON Concert_P REFERENCING NEW AS N OLD AS O FOR EACH ROW BEGIN UPDATE Concerts SET TicketPrice=25 WHERE TicketPrice<20; end@
+3.(c) & (d)
+	INSERT INTO Concert_P(2,6,25)@
+3.(e) & (f)
+	INSERT INTO Concert_P(2,3,25)@
